@@ -1,2 +1,6 @@
+# Data directories
 data_in/
 .ipynb_checkpoints/
+
+# Data files
+*.parquet
