@@ -1,6 +1,9 @@
 # Data directories
 data_in/
+
+# Other directories
 .ipynb_checkpoints/
+__pycache__/
 
 # Data files
 *.parquet
