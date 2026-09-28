@@ -6,13 +6,13 @@ from tqdm import tqdm
 SITE_META = "phenocam_site_in_usa.parquet"
 DAYMET_VARS = ["tmin", "tmax", "prcp", "vp"]
 OUTPUT = "phenocam_site_in_usa_climate.parquet"
+START_YEAR = 1990
+END_YEAR = 2025
 
 def get_site_timeseries(sitename: str, rowmeta: pd.Series) -> pd.DataFrame:
     lat = rowmeta["lat"]
     lon = rowmeta["lon"]
-    year_start = pd.to_datetime(rowmeta["date_start"]).year
-    year_end   = pd.to_datetime(rowmeta["date_end"]).year
-    site_ts = extract_timeseries(year_start, year_end, lat, lon, DAYMET_VARS)
+    site_ts = extract_timeseries(START_YEAR, END_YEAR, lat, lon, DAYMET_VARS)
     site_ts["site"] = sitename
     return site_ts
 
