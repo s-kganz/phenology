@@ -7,3 +7,6 @@ __pycache__/
 
 # Data files
 *.parquet
+
+# Notebook intermediates
+*.nb.html
