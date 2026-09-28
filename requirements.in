@@ -1,3 +1,6 @@
 mpl_scatter_density
 pre-commit
 brmspy
+lazycogs
+stac_geoparquet
+obstore
