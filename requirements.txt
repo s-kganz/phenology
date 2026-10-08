@@ -23,6 +23,8 @@ cfgv==3.5.0
     # via pre-commit
 ciso8601==2.3.3
     # via stac-geoparquet
+cloudpickle==3.1.2
+    # via joblib
 contourpy==1.4.0
     # via matplotlib
 cql2==0.6.0
@@ -45,6 +47,8 @@ geopandas==1.2.0
     # via stac-geoparquet
 identify==2.6.20
     # via pre-commit
+joblib==1.6.0
+    # via scikit-learn
 kiwisolver==1.5.1
     # via matplotlib
 lazycogs==0.7.0
@@ -53,6 +57,8 @@ matplotlib==3.11.2
     # via mpl-scatter-density
 mpl-scatter-density==0.8
     # via -r requirements.in
+narwhals==2.26.0
+    # via scikit-learn
 nodeenv==1.11.0
     # via pre-commit
 numpy==2.5.3
@@ -67,7 +73,10 @@ numpy==2.5.3
     #   pandas
     #   pyogrio
     #   rasterix
+    #   scikit-learn
+    #   scipy
     #   shapely
+    #   skops
     #   xarray
 obspec==0.1.0
     # via async-tiff
@@ -75,13 +84,14 @@ obstore==0.11.1
     # via
     #   -r requirements.in
     #   lazycogs
-orjson==3.12.0
+orjson==3.13.0
     # via stac-geoparquet
 packaging==26.3
     # via
     #   geopandas
     #   matplotlib
     #   pyogrio
+    #   skops
     #   stac-geoparquet
     #   virtualenv
     #   xarray
@@ -94,10 +104,12 @@ pandas==3.0.6
     #   xarray
 pillow==12.3.0
     # via matplotlib
-platformdirs==4.12.3
+platformdirs==4.12.4
     # via virtualenv
 pre-commit==4.6.2
     # via -r requirements.in
+prettytable==3.18.0
+    # via skops
 psutil==7.2.2
     # via stac-geoparquet
 pyarrow==25.0.1
@@ -206,18 +218,30 @@ rasterix==0.2.4
     # via lazycogs
 rustac==0.9.17
     # via lazycogs
-shapely==2.1.2
+scikit-learn==1.9.1
+    # via skops
+scipy==1.18.1
+    # via
+    #   scikit-learn
+    #   skops
+shapely==2.2.0
     # via
     #   geopandas
     #   stac-geoparquet
 six==1.17.0
     # via python-dateutil
+skops==0.16.0
+    # via -r requirements.in
 stac-geoparquet==0.8.2
     # via -r requirements.in
+threadpoolctl==3.7.0
+    # via scikit-learn
 types-psutil==7.2.2.20260906
     # via stac-geoparquet
-virtualenv==21.14.5
+virtualenv==21.14.6
     # via pre-commit
+wcwidth==0.9.2
+    # via prettytable
 xarray==2026.9.0
     # via
     #   lazycogs

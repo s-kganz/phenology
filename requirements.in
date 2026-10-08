@@ -3,3 +3,4 @@ pre-commit
 lazycogs
 stac_geoparquet
 obstore
+skops
