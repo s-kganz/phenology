@@ -1,6 +1,6 @@
 mpl_scatter_density
-pre-commit
 lazycogs
 stac_geoparquet
 obstore
 skops
+nbstripout
