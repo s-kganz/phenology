@@ -5,6 +5,10 @@ MACA_LINKS=(
     "http://thredds.northwestknowledge.net:8080/thredds/fileServer/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/BNU-ESM/macav2livneh_tasmax_BNU-ESM_r1i1p1_rcp85_2066_2085_CONUS_daily.nc" 
     "http://thredds.northwestknowledge.net:8080/thredds/fileServer/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/IPSL-CM5A-MR/macav2livneh_pr_IPSL-CM5A-MR_r1i1p1_rcp85_2066_2085_CONUS_daily.nc"
     "http://thredds.northwestknowledge.net:8080/thredds/fileServer/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/IPSL-CM5A-MR/macav2livneh_tasmax_IPSL-CM5A-MR_r1i1p1_rcp85_2066_2085_CONUS_daily.nc"
+    "http://thredds.northwestknowledge.net:8080/thredds/fileServer/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/BNU-ESM/macav2livneh_pr_BNU-ESM_r1i1p1_rcp85_2006_2025_CONUS_daily.nc"
+    "http://thredds.northwestknowledge.net:8080/thredds/fileServer/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/BNU-ESM/macav2livneh_tasmax_BNU-ESM_r1i1p1_rcp85_2006_2025_CONUS_daily.nc" 
+    "http://thredds.northwestknowledge.net:8080/thredds/fileServer/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/IPSL-CM5A-MR/macav2livneh_pr_IPSL-CM5A-MR_r1i1p1_rcp85_2006_2025_CONUS_daily.nc"
+    "http://thredds.northwestknowledge.net:8080/thredds/fileServer/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/IPSL-CM5A-MR/macav2livneh_tasmax_IPSL-CM5A-MR_r1i1p1_rcp85_2006_2025_CONUS_daily.nc"
 )
 
 for item in "${MACA_LINKS[@]}"; do

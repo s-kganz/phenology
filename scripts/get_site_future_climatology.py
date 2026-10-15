@@ -6,6 +6,7 @@ import xarray as xr
 
 ESM = ["BNU-ESM", "IPSL-CM5A-MR"]
 VAR = ["pr", "tasmax"]
+YEAR_RANGE = ["2006_2025", "2066_2085"]
 
 SITE_META = "phenocam_site_in_usa.parquet"
 OUTPUT = "phenocam_site_in_usa_climate_maca.parquet"
@@ -26,9 +27,9 @@ if __name__ == "__main__":
 
     dfs_by_site = []
 
-    for (this_esm, this_var) in itertools.product(ESM, VAR):
+    for (this_esm, this_var, this_range) in tqdm(itertools.product(ESM, VAR, YEAR_RANGE)):
         # Open dataset
-        s3_link = f"s3://nasa-cryo-persistent/ganzk/maca/macav2livneh_{this_var}_{this_esm}_r1i1p1_rcp85_2066_2085_CONUS_daily.nc"
+        s3_link = f"s3://nasa-cryo-persistent/ganzk/maca/macav2livneh_{this_var}_{this_esm}_r1i1p1_rcp85_{this_range}_CONUS_daily.nc"
         ds = xr.open_dataset(s3_link, engine="h5netcdf") # h5netcdf necessary for s3
 
         # Select TS at points of interest
@@ -37,7 +38,7 @@ if __name__ == "__main__":
 
         # Convert to pandas
         df = ds_ts.to_dataframe()
-        df.columns = [f"{this_esm}_{this_var}"]
+        df.columns = [f"{this_esm}_{this_var}_{this_range}"]
         dfs_by_site.append(df)
 
     pd.concat(dfs_by_site, axis=1, join="outer").to_parquet(OUTPUT)
