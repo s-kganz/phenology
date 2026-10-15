@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import expit
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class CircularTransformer(BaseEstimator, TransformerMixin):
@@ -65,3 +66,121 @@ def angular_absolute_error(y_true, y_hat, cycle_length=365):
 
     return error_rad / to_rad
 
+def greenup_activity(
+    temperature: np.ndarray[float], precipitation: np.ndarray[float], 
+    tmin: float, 
+    temp_sigmoid_inflection: float, temp_sigmoid_slope: float,
+    prcp_sigmoid_inflection: float, prcp_sigmoid_slope: float,
+    verbose: bool=False
+):
+    """Predict vegetation activity from cumulative temperature and precipitation forcing.
+
+    Temperature forcing accumulates as degree-days above `tmin`. All precipitation
+    contributes directly to forcing.
+
+    Parameters
+    ----------
+    temperature : array-like
+        Daily air temperature time series.
+    precipitation : array-like
+        Daily precipitation time series, same length as `temperature`.
+    tmin : array-like
+        Minimum temperature threshold for degree-day accumulation (fitted parameter).
+    (temp|prcp)_sigmoid_(inflection|slope) : array-like
+        Fitted parameters controlling the cumulative forcing function.
+    verbose : bool
+        Whether to return the temp/prcp forcing function output alongside overall
+        vegetation activity.
+
+    Returns
+    -------
+    array-like
+        Time series of predicted vegetation activity in the range 0-1. If `verbose`,
+        returns `(temp_forcing, prcp_forcing, total_forcing)`.
+    """
+    #temperature = np.asarray(temperature, dtype=float)
+    #precipitation = np.asarray(precipitation, dtype=float)
+
+    if temperature.shape != precipitation.shape:
+        raise ValueError("temperature and precipitation must have the same shape")
+
+    # Degree-day temperature forcing, clipped at zero
+    temp_forcing = np.maximum(temperature - tmin, 0.0)
+    temp_forcing_cumulative = np.cumsum(temp_forcing, axis=1)
+
+    # Precipitation forcing is just the sum
+    prcp_forcing_cumulative = np.cumsum(precipitation, axis=1)
+
+    # Calculate sigomid responses
+    temp_forcing_sigmoid = expit(np.exp(temp_sigmoid_slope) * (temp_forcing_cumulative - temp_sigmoid_inflection))
+    prcp_forcing_sigmoid = expit(np.exp(prcp_sigmoid_slope) * (prcp_forcing_cumulative - prcp_sigmoid_inflection))
+
+    # Multiply
+    total_forcing = temp_forcing_sigmoid * prcp_forcing_sigmoid
+
+    if verbose:
+        return temp_forcing_sigmoid, prcp_forcing_sigmoid, total_forcing
+    else:
+        return total_forcing
+
+def sos_swq_tmin(
+    temperature: np.ndarray[float], precipitation: np.ndarray[float],
+    b: float, c: float, # precip sigmoid
+    Preq: float, # cumulative precip requirement
+    Tthres: float, Tb: float, # temperature forcing parameters
+    Fcrit: float # total forcing parameter
+):
+    # Check whether precipitation forcing meets Preq
+    P_sigmoid = 1 / (1 + np.exp(-b * (precipitation - c)))
+    Sw = np.cumsum(P_sigmoid, axis=-1)
+    k = np.where(Sw > Preq, 1, 0)
+
+    # Accumulate temperature forcing
+    T_forcing = k * np.maximum(0, temperature - Tb)
+    Sf = np.cumsum(T_forcing, axis=-1)
+
+    # Reset the cumsum when temprature < Tthres
+    reset_vals = np.zeros_like(T_forcing)
+    reset_indices = np.where(temperature < Tthres)
+    reset_vals[reset_indices] = T_forcing[reset_indices]
+    subtract_mask = np.maximum.accumulate(reset_vals, axis=-1)
+    Sf = Sf - subtract_mask
+    
+    # Return running arrays so we can verify that this works
+    return (
+        P_sigmoid,
+        Sw,
+        k,
+        T_forcing,
+        Sf
+    )
+
+
+def sos_swq_tmin_predictor(
+    temperature: np.ndarray[float], precipitation: np.ndarray[float],
+    b: float, c: float, # precip sigmoid
+    Preq: float, # cumulative precip requirement
+    Tthres: float, Tb: float, # temperature forcing parameters
+    Fcrit: float # total forcing parameter
+):
+    _, _, _, _, Sf = sos_swq_tmin(temperature, precipitation, b, c, Preq, Tthres, Tb, Fcrit)
+
+    return np.argmax(Sf > Fcrit, axis=-1)
+
+
+def sos_swq_tmin_duration(
+    temperature: np.ndarray[float], precipitation: np.ndarray[float],
+    b: float, c: float, # precip sigmoid
+    Preq: float, # cumulative precip requirement
+    Tthres: float, Tb: float, # temperature forcing parameters
+    Fcrit: float # total forcing parameter
+):
+    '''
+    Get the time to reach Preq and Fcrit in the sos_swq_tmin model
+    '''
+    P_sigmoid, Sw, k, T_forcing, Sf = sos_swq_tmin(temperature, precipitation, b, c, Preq, Tthres, Tb, Fcrit)
+
+    time_to_preq  = np.argmax(k, axis=-1) + 1
+    time_to_fcrit = np.argmax(Sf > Fcrit, axis=-1) + 1 - time_to_preq
+
+    return time_to_preq, time_to_fcrit
