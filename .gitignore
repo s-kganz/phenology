@@ -4,10 +4,14 @@ data_in/
 # Other directories
 .ipynb_checkpoints/
 __pycache__/
+figures/
 
 # Data files
 *.parquet
 *.rds
+*.skops
 
 # Notebook intermediates
 *.nb.html
+*.html
+*.md
