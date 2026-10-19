@@ -83,7 +83,7 @@ if __name__ == "__main__":
     grass_sites.loc["srg", "grass_types"] = 'C4'
     
     # Convert to human-readable veg type
-    grass_sites["grass_types"][grass_sites["grass_types"].map(type) == np.ndarray] = np.nan
+    grass_sites["grass_types"] = grass_sites["grass_types"].astype(str)
     grass_sites["grass_types"] = grass_sites["grass_types"].map({
         "C3": "C3 grass",
         "C4": "C4 grass"
@@ -97,6 +97,12 @@ if __name__ == "__main__":
 
     print("Site-years per vegetation type")
     print(site_in_usa.groupby("primary_veg_type").agg({"site_years": "sum"})["site_years"].round())
+
+    # The 'S' in US is not capitalized for some reason
+    site_in_usa.loc["windriver", "flux_sitenames"] = "US-Wrc"
+    # As far as I can tell the "forthcoming" flux site never happened
+    site_in_usa.loc["bozeman", "flux_data"] = False
+    site_in_usa.loc["bozeman", "flux_sitenames"] = ""
 
     # Save results
     site_in_usa.to_parquet(OUTPUT_FILTERED)
