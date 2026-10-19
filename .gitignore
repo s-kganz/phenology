@@ -11,6 +11,9 @@ figures/
 *.rds
 *.skops
 
+# Secrets
+secrets.yaml
+
 # Notebook intermediates
 *.nb.html
 *.html
