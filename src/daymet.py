@@ -8,7 +8,14 @@ def extract_timeseries(start_year: int, end_year: int, lat: float, lon: float, v
     request_url = f"https://daymet.ornl.gov/single-pixel/api/data?lat={lat}&lon={lon}&vars={vars_comma_sep}&years={years_comma_sep}"
     
     resp = requests.get(request_url)
-    
-    df = pd.read_csv(io.StringIO(resp.text), skiprows=6)
+    df = pd.read_csv(io.StringIO(resp.text), skiprows=6).rename(
+        columns={
+            "prcp (mm/day)": "prcp",
+            "tmax (deg c)": "tmax",
+            "tmin (deg c)": "tmin", 	
+            "vp (Pa)": "vp"
+        }
+    ).set_index(["year", "yday"])
     
     return df
+
