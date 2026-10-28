@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Get all granules for pheno transitions
     transition_granules = earthaccess.search_data(
         short_name="PhenoCam_V3_2389",
-        granule_name="*1day_transition_dates*"
+        granule_name="*3day_transition_dates*"
     )
     print(f"Found {len(transition_granules)} granules")
 
