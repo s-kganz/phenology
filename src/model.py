@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import expit
 from sklearn.base import BaseEstimator, TransformerMixin
+import pandas as pd
 
 class CircularTransformer(BaseEstimator, TransformerMixin):
     '''
@@ -65,6 +66,20 @@ def angular_absolute_error(y_true, y_hat, cycle_length=365):
     error_rad = np.minimum(np.abs(y_true_rad - y_hat_rad), 2*np.pi - np.abs(y_true_rad - y_hat_rad))
 
     return error_rad / to_rad
+
+def angular_root_mean_square_error(y_true, y_hat, cycle_length=365):
+    residual = angular_absolute_error(y_true, y_hat, cycle_length)
+    return np.sqrt(np.mean(residual ** 2))
+
+def model_performance(y_true, y_hat, cycle_length=365):
+    return pd.DataFrame(data=dict(
+        metric=["js_correlation", "angular_mae", "angular_rmse"],
+        value=[
+            jammalamadaka_sharma_corr(y_true, y_hat, cycle_length),
+            angular_absolute_error(y_true, y_hat, cycle_length).mean(),
+            angular_root_mean_square_error(y_true, y_hat, cycle_length)
+        ]
+    ))
 
 def greenup_activity(
     temperature: np.ndarray[float], precipitation: np.ndarray[float], 
@@ -142,7 +157,7 @@ def sos_swq_tmin(
     # Reset the cumsum when temprature < Tthres
     reset_vals = np.zeros_like(T_forcing)
     reset_indices = np.where(temperature < Tthres)
-    reset_vals[reset_indices] = T_forcing[reset_indices]
+    reset_vals[reset_indices] = Sf[reset_indices]
     subtract_mask = np.maximum.accumulate(reset_vals, axis=-1)
     Sf = Sf - subtract_mask
     
