@@ -5,6 +5,7 @@ from skimage.filters import threshold_otsu
 META = pd.read_parquet("phenocam_site_in_usa.parquet")
 PHENO = pd.read_parquet("phenocam_site_in_usa_phenology.parquet")
 GCC_FIELD = "gcc_90"
+TRANSITION_UNCRT_MAX = 30 # days
 OUTPUT = "phenocam_phenology_model.parquet"
 
 
@@ -63,6 +64,16 @@ if __name__ == "__main__":
         (~pheno_clean.is_multimodal) |
         ((pheno_clean.direction == "rising") & (pheno_clean.transition_50.dt.dayofyear <= rise_threshold)) |
         ((pheno_clean.direction == "falling") & (pheno_clean.transition_50.dt.dayofyear >= fall_threshold))
+    ]
+
+    # Exclude transition dates with high uncertainty
+    pheno_clean["transition_50_uncrt_days"] = (
+        (pheno_clean["transition_50_upper_ci"] - pheno_clean["transition_50_lower_ci"]) /
+        np.timedelta64(1, 'D')
+    ).abs()
+
+    pheno_clean = pheno_clean[
+        pheno_clean["transition_50_uncrt_days"] < TRANSITION_UNCRT_MAX
     ]
 
     # Get DOY of transition dates
