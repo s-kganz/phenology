@@ -139,52 +139,46 @@ def greenup_activity(
         return total_forcing
 
 def sos_swq_tmin(
-    temperature: np.ndarray[float], precipitation: np.ndarray[float],
+    tavg: np.ndarray[float], tmin: np.ndarray[float], precipitation: np.ndarray[float],
     b: float, c: float, # precip sigmoid
     Preq: float, # cumulative precip requirement
     Tthres: float, Tb: float, # temperature forcing parameters
-    Fcrit: float # total forcing parameter
+    Fcrit: float, # total forcing parameter
+    verbose: bool=False
 ):
     # Check whether precipitation forcing meets Preq
     P_sigmoid = 1 / (1 + np.exp(-b * (precipitation - c)))
     Sw = np.cumsum(P_sigmoid, axis=-1)
-    k = np.where(Sw > Preq, 1, 0)
+    k = np.where(Sw >= Preq, 1, 0)
 
     # Accumulate temperature forcing
-    T_forcing = k * np.maximum(0, temperature - Tb)
+    T_forcing = k * np.maximum(0, tavg - Tb)
     Sf = np.cumsum(T_forcing, axis=-1)
 
     # Reset the cumsum when temprature < Tthres
     reset_vals = np.zeros_like(T_forcing)
-    reset_indices = np.where(temperature < Tthres)
+    reset_indices = np.where(tmin <= Tthres)
     reset_vals[reset_indices] = Sf[reset_indices]
     subtract_mask = np.maximum.accumulate(reset_vals, axis=-1)
     Sf = Sf - subtract_mask
+    doy_sos = np.argmax(Sf >= Fcrit, axis=-1)
     
     # Return running arrays so we can verify that this works
-    return (
-        P_sigmoid,
-        Sw,
-        k,
-        T_forcing,
-        Sf
-    )
-
-
-def sos_swq_tmin_predictor(
-    temperature: np.ndarray[float], precipitation: np.ndarray[float],
-    b: float, c: float, # precip sigmoid
-    Preq: float, # cumulative precip requirement
-    Tthres: float, Tb: float, # temperature forcing parameters
-    Fcrit: float # total forcing parameter
-):
-    _, _, _, _, Sf = sos_swq_tmin(temperature, precipitation, b, c, Preq, Tthres, Tb, Fcrit)
-
-    return np.argmax(Sf > Fcrit, axis=-1)
+    if verbose:
+        return (
+            P_sigmoid,
+            Sw,
+            k,
+            T_forcing,
+            Sf,
+            doy_sos
+        )
+    else:
+        return doy_sos
 
 
 def sos_swq_tmin_duration(
-    temperature: np.ndarray[float], precipitation: np.ndarray[float],
+    tavg: np.ndarray[float], tmin: np.ndarray[float], precipitation: np.ndarray[float],
     b: float, c: float, # precip sigmoid
     Preq: float, # cumulative precip requirement
     Tthres: float, Tb: float, # temperature forcing parameters
@@ -193,9 +187,41 @@ def sos_swq_tmin_duration(
     '''
     Get the time to reach Preq and Fcrit in the sos_swq_tmin model
     '''
-    P_sigmoid, Sw, k, T_forcing, Sf = sos_swq_tmin(temperature, precipitation, b, c, Preq, Tthres, Tb, Fcrit)
+    P_sigmoid, Sw, k, T_forcing, Sf, doy_sos = sos_swq_tmin(tavg, tmin, precipitation, b, c, Preq, Tthres, Tb, Fcrit, verbose=True)
 
     time_to_preq  = np.argmax(k, axis=-1) + 1
-    time_to_fcrit = np.argmax(Sf > Fcrit, axis=-1) + 1 - time_to_preq
+    time_to_fcrit = np.argmax(Sf >= Fcrit, axis=-1) + 1 - time_to_preq
 
     return time_to_preq, time_to_fcrit
+
+def sos_thermal_time(
+    tavg: np.ndarray[float], tmin: np.ndarray[float],
+    Tthres: float,
+    Tb: float,
+    Fcrit: float,
+    verbose: bool=False
+):
+    '''
+    Thermal time start of season model, including the low-temperature reset
+    parameter from Post et al. (2022).
+    '''
+    # Accumulate temperature forcing
+    T_forcing = np.maximum(0, tavg - Tb)
+    Sf = np.cumsum(T_forcing, axis=-1)
+
+    # Reset the cumsum when temprature < Tthres
+    reset_vals = np.zeros_like(T_forcing)
+    reset_indices = np.where(tmin <= Tthres)
+    reset_vals[reset_indices] = Sf[reset_indices]
+    subtract_mask = np.maximum.accumulate(reset_vals, axis=-1)
+    Sf = Sf - subtract_mask
+    doy_sos = np.argmax(Sf >= Fcrit, axis=-1)
+
+    if verbose:
+        return (
+            Sf,
+            T_forcing,
+            doy_sos
+        )
+    else:
+        return doy_sos
