@@ -232,6 +232,7 @@ def amf_site_timeseries(base_df: pd.DataFrame):
         .agg(
             tmin=("TA", "min"),
             tmax=("TA", "max"),
+            tavg=("TA", "mean"),
             vp=("VP", "mean"),
             prcp=("P", "sum")
         )
